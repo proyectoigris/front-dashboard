@@ -1,0 +1,8 @@
+# No subir a Vercel: modelos originales pesados (≈90 MB), dependencias y compilados locales.
+models-originales
+node_modules
+dist
+.claude
+# Credenciales locales creadas por 'vercel link'
+.env*
+.vercel
