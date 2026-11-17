@@ -83,7 +83,7 @@ export function TreatmentExplorer() {
           <span className="h-3 w-3 rounded-full" style={{ background: t.color }} />
           {tr} · {t.label}
         </span>
-        <div className="ml-auto flex gap-1 rounded-xl bg-white/90 p-1 shadow-sm">
+        <div className="ml-auto flex max-w-full gap-1 overflow-x-auto rounded-xl bg-white/90 p-1 shadow-sm">
           <Chip active={plant === null} onClick={() => setPlant(null)}>
             Media
           </Chip>
@@ -104,7 +104,7 @@ export function TreatmentExplorer() {
       </div>
 
       <div className="panel flex min-h-0 flex-1 flex-col">
-        <div className="flex shrink-0 items-center gap-3 px-4 pt-3">
+        <div className="flex shrink-0 flex-wrap items-center gap-3 px-4 pt-3">
           <Segmented
             size="sm"
             value={section}

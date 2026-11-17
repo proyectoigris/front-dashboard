@@ -101,7 +101,7 @@ export function EnvironmentDetail() {
             events={irrigation}
           />
         </div>
-        <div className="mt-3 flex gap-10 border-t border-line pt-3 text-sm">
+        <div className="mt-3 flex flex-wrap gap-x-10 gap-y-2 border-t border-line pt-3 text-sm">
           <Stat label="Media del periodo" value={fmt(d.mean, meta.decimals)} unit={meta.unit} />
           <Stat label="Mínimo" value={fmt(d.min, meta.decimals)} unit={meta.unit} />
           <Stat label="Máximo" value={fmt(d.max, meta.decimals)} unit={meta.unit} />

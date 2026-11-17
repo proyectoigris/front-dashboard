@@ -53,12 +53,12 @@ export function Segmented<T extends string>({
   size?: 'sm' | 'md';
 }) {
   return (
-    <div className="inline-flex rounded-lg border border-line-strong bg-white p-0.5 shadow-sm">
+    <div className="inline-flex max-w-full overflow-x-auto rounded-lg border border-line-strong bg-white p-0.5 shadow-sm">
       {options.map((o) => (
         <button
           key={o.value}
           onClick={() => onChange(o.value)}
-          className={`rounded-md font-medium transition-colors ${
+          className={`shrink-0 rounded-md font-medium whitespace-nowrap transition-colors ${
             size === 'sm' ? 'min-h-9 px-3 text-xs' : 'min-h-10 px-3.5 text-sm'
           } ${value === o.value ? 'bg-accent-ink text-white shadow-sm' : 'text-ink-2 hover:bg-panel-2 hover:text-ink'}`}
         >

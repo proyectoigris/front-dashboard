@@ -79,7 +79,7 @@ export function AlertsList({ compact = false, onOpenPlant }: { compact?: boolean
       {!compact && (
         <div className="mt-4">
           <h3 className="panel-title mb-2">Dispositivos</h3>
-          <ul className="grid grid-cols-2 gap-2">
+          <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {s.devices.map((d) => (
               <li key={d.id} className="flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-sm">
                 <StatusDot status={d.status === 'connected' ? 'ok' : d.status === 'degraded' ? 'warn' : 'crit'} />

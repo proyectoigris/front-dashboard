@@ -11,6 +11,7 @@ import { TreatmentExplorer } from './components/treatment/TreatmentExplorer';
 import type { AssistantAction } from './services/assistant';
 import { igrisStore, useSnapshot } from './store/igrisStore';
 import { UiProvider, useUi } from './state/ui';
+import { useIsMobile } from './state/useIsMobile';
 import type { PlantId, TreatmentId } from './types/domain';
 
 type Route = 'welcome' | 'login' | 'app';
@@ -79,6 +80,7 @@ export default function App() {
 function Shell({ user, onLogout }: { user: string; onLogout: () => void }) {
   const ui = useUi();
   const s = useSnapshot();
+  const mobile = useIsMobile();
 
   useEffect(() => {
     igrisStore.start();
@@ -117,11 +119,14 @@ function Shell({ user, onLogout }: { user: string; onLogout: () => void }) {
   const open = ui.panelOpen;
 
   return (
-    <div className="relative flex h-full w-full overflow-hidden">
-      {/* Planta 3D: ocupa toda la pantalla con el panel cerrado y se va al primer tercio al abrirlo. */}
+    <div className={`relative flex h-full w-full overflow-hidden ${mobile ? 'flex-col' : ''}`}>
+      {/* Planta 3D: ocupa toda la pantalla con el panel cerrado y se va al primer tercio al abrirlo.
+          En móvil se apila: la planta arriba (franja) y los datos debajo. */}
       <div
-        className={`h-full shrink-0 border-white/10 transition-[width] duration-700 ease-in-out ${open ? 'border-r' : ''}`}
-        style={{ width: open ? '33%' : '100%' }}
+        className={`shrink-0 border-white/10 duration-700 ease-in-out ${
+          mobile ? `w-full transition-[height] ${open ? 'border-b' : ''}` : `h-full transition-[width] ${open ? 'border-r' : ''}`
+        }`}
+        style={mobile ? { height: open ? '34%' : '100%' } : { width: open ? '33%' : '100%' }}
       >
         <PlantStage />
       </div>
@@ -130,49 +135,51 @@ function Shell({ user, onLogout }: { user: string; onLogout: () => void }) {
       <button
         onClick={() => ui.setPanelOpen(true)}
         aria-label="Mostrar panel de datos"
-        className={`absolute top-1/2 right-6 z-30 -translate-y-1/2 transition-all duration-500 ${open ? 'pointer-events-none translate-x-8 opacity-0' : 'opacity-100'}`}
+        className={`absolute z-30 transition-all duration-500 ${mobile ? 'top-[45%] right-3' : 'top-1/2 right-6 -translate-y-1/2'} ${open ? 'pointer-events-none translate-x-8 opacity-0' : 'opacity-100'}`}
       >
-        <img src="/igris/btn-ver-datos.png" alt="" draggable={false} className="img-btn h-[96px] w-auto" />
+        <img src="/igris/btn-ver-datos.png" alt="" draggable={false} className={`img-btn w-auto ${mobile ? 'h-[68px]' : 'h-[96px]'}`} />
       </button>
       {/* Panel de datos: se desliza desde la derecha. El contenido tiene ancho fijo para no reacomodarse durante la animación. */}
       <main
         aria-hidden={!open}
-        className={`relative h-full min-w-0 overflow-hidden transition-all duration-700 ease-in-out ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
-        style={{ width: open ? '67%' : '0%' }}
+        className={`relative min-w-0 min-h-0 overflow-hidden transition-all duration-700 ease-in-out ${mobile ? 'w-full' : 'h-full'} ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+        style={mobile ? { height: open ? '66%' : '0%' } : { width: open ? '67%' : '0%' }}
       >
-      <div className="flex h-full w-[67vw] flex-col px-6 pt-4 pb-3">
+      <div className={`flex h-full flex-col ${mobile ? 'w-full px-3 pt-2 pb-2' : 'w-[67vw] px-6 pt-4 pb-3'}`}>
         {/* Barra superior: dónde estoy + estado del sistema. */}
-        <header className="mb-3 flex h-12 shrink-0 items-center gap-4">
+        <header className={`flex shrink-0 items-center ${mobile ? 'mb-2 h-10 gap-2' : 'mb-3 h-12 gap-4'}`}>
           {!atHome && (
             <button
               onClick={goHome}
-              className="flex h-12 items-center gap-2 rounded-xl bg-white/90 px-4 text-sm text-ink-2 shadow-sm hover:bg-white hover:text-ink"
+              aria-label="Inicio"
+              className="flex h-full items-center gap-2 rounded-xl bg-white/90 px-3 text-sm text-ink-2 shadow-sm hover:bg-white hover:text-ink md:px-4"
             >
-              <span className="text-lg leading-none">‹</span> Inicio
+              <span className="text-lg leading-none">‹</span> {!mobile && 'Inicio'}
             </button>
           )}
-          <h1 className="text-xl font-medium text-white">{explorer ? 'Tratamiento' : SECTION_TITLES[ui.tab]}</h1>
+          <h1 className="min-w-0 truncate text-base font-medium text-white md:text-xl">{explorer ? 'Tratamiento' : SECTION_TITLES[ui.tab]}</h1>
           <button
             onClick={() => ui.setPanelOpen(false)}
-            className="ml-auto flex h-12 items-center gap-2 rounded-xl bg-white/10 px-4 text-sm text-white ring-1 ring-white/25 hover:bg-white/20"
+            aria-label="Ver solo la planta"
+            className="ml-auto flex h-full shrink-0 items-center gap-2 rounded-xl bg-white/10 px-3 text-sm text-white ring-1 ring-white/25 hover:bg-white/20 md:px-4"
           >
-            Ver solo la planta <span className="text-lg leading-none">›</span>
+            {mobile ? 'Planta' : 'Ver solo la planta'} <span className="text-lg leading-none">{mobile ? '⌃' : '›'}</span>
           </button>
           {/* Cliente conectado y salida. */}
-          <div className="flex h-12 items-center gap-2 rounded-xl bg-white/10 pr-1 pl-3 text-sm text-white ring-1 ring-white/25">
+          <div className="flex h-full shrink-0 items-center gap-2 rounded-xl bg-white/10 pr-1 pl-2 text-sm text-white ring-1 ring-white/25 md:pl-3">
             <span className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-[#74b43b] to-[#0085de] text-xs font-semibold uppercase">
               {user.slice(0, 1)}
             </span>
-            <span className="max-w-[140px] truncate">{user}</span>
-            <button onClick={onLogout} className="h-10 rounded-lg px-3 text-white/80 hover:bg-white/15 hover:text-white">
+            {!mobile && <span className="max-w-[140px] truncate">{user}</span>}
+            <button onClick={onLogout} className="h-8 rounded-lg px-2 text-white/80 hover:bg-white/15 hover:text-white md:h-10 md:px-3">
               Salir
             </button>
           </div>
         </header>
         {/* Línea con los degradados del logotipo: lima → turquesa → azul. */}
-        <div className="mb-4 h-[3px] shrink-0 rounded-full bg-gradient-to-r from-lime via-turquoise to-blue" />
+        <div className="mb-3 h-[3px] shrink-0 md:mb-4 rounded-full bg-gradient-to-r from-lime via-turquoise to-blue" />
 
-        <div className="relative min-h-0 flex-1">
+        <div className={`relative min-h-0 flex-1 ${mobile ? 'm-flow scroll-y overflow-x-hidden pb-4' : ''}`}>
           {s.status === 'loading' && <div className="grid h-full place-items-center text-white/85">Cargando datos de la cámara…</div>}
           {s.status === 'error' && <div className="grid h-full place-items-center text-crit">Error: {s.error}</div>}
           {s.status === 'ready' &&
@@ -191,11 +198,12 @@ function Shell({ user, onLogout }: { user: string; onLogout: () => void }) {
         </div>
 
         {/* Barra inferior: estado del sistema a la izquierda, IGRIS a la derecha (no tapa datos). */}
-        <footer className="mt-3 flex h-16 shrink-0 items-center justify-between gap-6">
-          <div className="flex items-center gap-6 text-sm text-white/85">
-            {s.origin === 'simulated' && <SimBadge onDark />}
+        {/* En móvil el estado va en una fila compacta; el botón de IGRIS flota sobre el contenido. */}
+        <footer className={`flex shrink-0 items-center justify-between ${mobile ? 'mt-2 h-9 gap-2 pr-[172px] md:pr-[250px]' : 'mt-3 h-16 gap-6'}`}>
+          <div className={`flex min-w-0 items-center text-white/85 ${mobile ? 'gap-3 overflow-hidden text-xs' : 'gap-6 text-sm'}`}>
+            {s.origin === 'simulated' && <SimBadge onDark compact={mobile} />}
             {activeAlerts > 0 && !explorer && ui.tab !== 'alerts' && (
-              <button onClick={() => ui.setTab('alerts')} className="flex h-10 items-center gap-2 rounded-full bg-white/10 px-4 text-white hover:bg-white/20">
+              <button onClick={() => ui.setTab('alerts')} className="flex h-8 shrink-0 items-center gap-2 rounded-full bg-white/10 px-3 text-white hover:bg-white/20 md:h-10 md:px-4">
                 <span className="h-2 w-2 rounded-full bg-[#fab219]" />
                 {activeAlerts} {activeAlerts === 1 ? 'alerta' : 'alertas'}
               </button>
@@ -204,16 +212,16 @@ function Shell({ user, onLogout }: { user: string; onLogout: () => void }) {
               <span className={`h-2 w-2 rounded-full ${s.connection === 'open' ? 'bg-[#a6e07a]' : 'bg-crit'}`} />
               {s.connection === 'open' ? 'En vivo' : 'Sin conexión'}
             </span>
-            <span className="num text-base text-white">{fmtTime(s.now)}</span>
+            {!mobile && <span className="num text-base text-white">{fmtTime(s.now)}</span>}
           </div>
           {/* Espacio reservado para el botón de IGRIS (fijo abajo a la derecha). */}
-          <div className="w-60 shrink-0" />
+          {!mobile && <div className="w-60 shrink-0" />}
         </footer>
       </div>
       </main>
 
       {/* IGRIS: disponible siempre, con o sin panel. */}
-      <div className="fixed right-6 bottom-3 z-40">
+      <div className="fixed right-3 bottom-2 z-40 md:right-6 md:bottom-3">
         <AssistantWidget onAction={onAssistantAction} />
       </div>
     </div>

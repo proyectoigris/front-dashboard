@@ -9,6 +9,7 @@ import { lazy, Suspense, useState } from 'react';
 import { TREATMENTS, TREATMENT_IDS } from '../../config/experiment';
 import { useSnapshot } from '../../store/igrisStore';
 import { useUi } from '../../state/ui';
+import { useIsMobile } from '../../state/useIsMobile';
 import { Segmented } from '../common/primitives';
 import { ModelBoundary } from '../three/FittedModel';
 import type { BioZone, TagKind } from './PlantScene';
@@ -17,7 +18,7 @@ import { sceneDataFor } from './useSceneData';
 const PlantScene = lazy(() => import('./PlantScene'));
 
 /** Logo original de IGRIS (public/igris/logo.png). Si aún no está, se muestra el nombre. */
-function Logo() {
+function Logo({ className = 'h-24' }: { className?: string }) {
   const [missing, setMissing] = useState(false);
   if (missing)
     return (
@@ -38,7 +39,7 @@ function Logo() {
         if (!img.src.endsWith('/igris/logo.png')) img.src = '/igris/logo.png';
         else setMissing(true);
       }}
-      className="h-24 w-auto object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.35)]"
+      className={`${className} w-auto object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.35)]`}
     />
   );
 }
@@ -46,7 +47,10 @@ function Logo() {
 export function PlantStage() {
   const s = useSnapshot();
   const ui = useUi();
-  const compact = ui.panelOpen;
+  const mobile = useIsMobile();
+  // Escritorio con panel abierto: columna ordenada. Móvil con panel abierto: franja superior mínima.
+  const compact = ui.panelOpen && !mobile;
+  const mini = ui.panelOpen && mobile;
   const tr = ui.treatment;
   const t = TREATMENTS[tr];
   const plant = ui.selectedPlant && s.plantById.get(ui.selectedPlant)?.treatmentId === tr ? ui.selectedPlant : null;
@@ -69,12 +73,17 @@ export function PlantStage() {
 
   const header = (
     <>
-      <header className={`${compact ? 'relative shrink-0' : 'pointer-events-none absolute inset-x-0 top-0 z-10'} flex items-start justify-between gap-4 px-6 pt-5`}>
+      <header
+        className={`${compact ? 'relative shrink-0' : 'pointer-events-none absolute inset-x-0 top-0 z-10'} flex items-start justify-between ${
+          mobile ? (mini ? 'gap-2 px-3 pt-2' : 'gap-3 px-3 pt-3') : 'gap-4 px-6 pt-5'
+        }`}
+      >
         <div className="pointer-events-auto">
-          <Logo />
+          <Logo className={mini ? 'h-9' : mobile ? 'h-14' : 'h-24'} />
         </div>
         <div className="pointer-events-auto">
           <Segmented
+            size={mobile ? 'sm' : 'md'}
             value={tr}
             onChange={(id) => {
               ui.setTreatment(id);
@@ -92,12 +101,14 @@ export function PlantStage() {
           />
         </div>
       </header>
-      <div className={`${compact ? 'relative shrink-0 pt-3' : 'pointer-events-none absolute top-[128px] left-0 z-10'} px-6`}>
-        <p className="text-sm font-medium text-white">
-          {tr} · {t.label}
-        </p>
-        <p className="text-xs text-white/85">{plant ? `Planta ${plant}` : 'Media del tratamiento'} · datos en vivo</p>
-      </div>
+      {!mini && (
+        <div className={`${compact ? 'relative shrink-0 pt-3' : `pointer-events-none absolute left-0 z-10 ${mobile ? 'top-[76px]' : 'top-[128px]'}`} ${mobile ? 'px-3' : 'px-6'}`}>
+          <p className="text-sm font-medium text-white">
+            {tr} · {t.label}
+          </p>
+          <p className="text-xs text-white/85">{plant ? `Planta ${plant}` : 'Media del tratamiento'} · datos en vivo</p>
+        </div>
+      )}
     </>
   );
 
@@ -111,7 +122,7 @@ export function PlantStage() {
       aria-pressed={ui.tab === 'analysis' && !ui.explorerOpen}
       className={`img-btn pointer-events-auto block ${ui.tab === 'analysis' && !ui.explorerOpen ? 'img-btn-active' : ''}`}
     >
-      <img src="/igris/btn-analisis.png" alt="" draggable={false} className={`${compact ? 'h-[76px]' : 'h-[100px]'} w-auto`} />
+      <img src="/igris/btn-analisis.png" alt="" draggable={false} className={`${mini ? 'h-10' : mobile ? 'h-[56px]' : compact ? 'h-[76px]' : 'h-[100px]'} w-auto`} />
     </button>
   );
 
@@ -127,7 +138,7 @@ export function PlantStage() {
         {s.status === 'ready' && (
           <ModelBoundary fallback={<div className="grid h-full place-items-center text-sm text-white/85">No se pudo mostrar la planta 3D.</div>}>
             <Suspense fallback={<div className="grid h-full place-items-center text-sm text-white/85">Cargando planta 3D…</div>}>
-              <PlantScene data={sceneDataFor(s, tr, plant)} accent={t.color} sceneKey={`${tr}-${plant ?? 'mean'}`} zone={zone} onZone={openZone} onTag={openTag} compact={compact} />
+              <PlantScene data={sceneDataFor(s, tr, plant)} accent={t.color} sceneKey={`${tr}-${plant ?? 'mean'}`} zone={zone} onZone={openZone} onTag={openTag} compact={compact} mini={mini} />
             </Suspense>
           </ModelBoundary>
         )}
@@ -136,7 +147,7 @@ export function PlantStage() {
       {compact ? (
         <div className="flex shrink-0 justify-center px-6 pt-2 pb-4">{analysisButton}</div>
       ) : (
-        <div className="pointer-events-none absolute bottom-4 left-6 z-10">{analysisButton}</div>
+        <div className={`pointer-events-none absolute z-10 ${mini ? 'bottom-2 left-3' : mobile ? 'bottom-2 left-3' : 'bottom-4 left-6'}`}>{analysisButton}</div>
       )}
     </aside>
   );

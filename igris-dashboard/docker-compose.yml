@@ -1,0 +1,8 @@
+services:
+  igris-dashboard:
+    build: .
+    image: igris-dashboard:latest
+    container_name: igris-dashboard
+    restart: unless-stopped
+    ports:
+      - "${IGRIS_PORT:-80}:80"

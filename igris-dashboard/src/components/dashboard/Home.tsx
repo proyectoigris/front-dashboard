@@ -52,7 +52,7 @@ export function Home({ onSection, onTreatment }: { onSection: (t: TabKey) => voi
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
-      <section className="grid min-h-0 flex-1 grid-cols-2 gap-4 xl:grid-cols-4">
+      <section className="grid min-h-0 flex-1 grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">
         <SectionCard
           title="Ambiente"
           icon="temp"
@@ -112,9 +112,9 @@ export function Home({ onSection, onTreatment }: { onSection: (t: TabKey) => voi
       <section className="flex min-h-0 flex-1 flex-col">
         <div className="mb-3 flex items-baseline justify-between px-1">
           <h2 className="text-base font-medium text-white">Tratamientos</h2>
-          <span className="text-sm text-white/85">Toca uno para ver sus datos y su planta 3D</span>
+          <span className="text-sm text-white/85 max-md:hidden">Toca uno para ver sus datos y su planta 3D</span>
         </div>
-        <div className="grid min-h-0 flex-1 grid-cols-2 gap-4 xl:grid-cols-4">
+        <div className="grid min-h-0 flex-1 grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">
           {TREATMENT_IDS.map((id) => {
             const t = TREATMENTS[id];
             const m = moistureStats(s, plantsOf(s, id), 'upper');
@@ -126,17 +126,17 @@ export function Home({ onSection, onTreatment }: { onSection: (t: TabKey) => voi
                   <span className="text-lg font-semibold text-ink">{id}</span>
                   <OpenPill>Ver planta</OpenPill>
                 </div>
-                <div className="my-2 min-h-0 flex-1">
+                <div className="my-2 min-h-0 flex-1 in-[.m-flow]:h-12 in-[.m-flow]:flex-none">
                   <Sparkline values={charts.byTreatment[id]} color={t.color} label="Humedad 3 cm · 24 h" />
                 </div>
-                <p className="text-sm text-ink-3">
+                <p className="text-xs text-ink-3 md:text-sm">
                   {t.waterRegime === 'normal' ? 'Riego normal' : 'Déficit hídrico'} · {t.inoculated ? 'Inoculado' : 'Sin inocular'}
                 </p>
                 <div className="flex items-baseline gap-1.5">
-                  <span className={`stat text-4xl font-semibold ${low ? 'text-warn' : 'text-ink'}`}>{fmt(m.mean, 1)}</span>
+                  <span className={`stat text-3xl font-semibold md:text-4xl ${low ? 'text-warn' : 'text-ink'}`}>{fmt(m.mean, 1)}</span>
                   <span className="text-base text-ink-3">%</span>
                 </div>
-                <p className="text-sm text-ink-3">Humedad a 3 cm · n = {m.n}</p>
+                <p className="text-xs text-ink-3 md:text-sm">Humedad a 3 cm · n = {m.n}</p>
               </Card>
             );
           })}
@@ -150,7 +150,7 @@ function Card({ onClick, accent, children }: { onClick: () => void; accent?: str
   return (
     <button
       onClick={onClick}
-      className="group relative flex min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-line bg-panel p-6 text-left shadow-sm transition-colors hover:border-line-strong hover:bg-panel-2 active:bg-panel-2"
+      className="group relative flex min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-line bg-panel p-3.5 text-left md:p-6 shadow-sm transition-colors hover:border-line-strong hover:bg-panel-2 active:bg-panel-2"
     >
       {accent && <span className="absolute inset-x-0 top-0 h-1.5" style={{ background: accent }} />}
       {children}
@@ -183,20 +183,20 @@ function SectionCard({
 }) {
   return (
     <Card onClick={onClick}>
-      <div className="flex items-center gap-3">
-        <span className="grid h-11 w-11 place-items-center rounded-xl" style={{ background: `${tint}22`, color: tint }}>
+      <div className="flex items-center gap-2 md:gap-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl md:h-11 md:w-11" style={{ background: `${tint}22`, color: tint }}>
           <Icon name={icon} />
         </span>
-        <h3 className="flex-1 text-base font-medium text-ink">{title}</h3>
+        <h3 className="min-w-0 flex-1 truncate text-sm font-medium text-ink md:text-base">{title}</h3>
         <OpenPill>Ver detalle</OpenPill>
       </div>
-      <div className="my-3 min-h-0 flex-1">{chart}</div>
+      <div className="my-3 min-h-0 flex-1 in-[.m-flow]:h-14 in-[.m-flow]:flex-none">{chart}</div>
       <div className="flex items-baseline gap-2">
-        <span className={`stat text-5xl leading-none font-semibold ${warn ? 'text-warn' : 'text-ink'}`}>{value}</span>
-        <span className="text-lg text-ink-3">{unit}</span>
+        <span className={`stat text-3xl leading-none md:text-5xl font-semibold ${warn ? 'text-warn' : 'text-ink'}`}>{value}</span>
+        <span className="text-sm text-ink-3 md:text-lg">{unit}</span>
       </div>
-      <p className="mt-2 truncate text-sm text-ink-2">{caption}</p>
-      <p className="mt-1 truncate text-sm whitespace-pre text-ink-3">{detail}</p>
+      <p className="mt-2 truncate text-xs text-ink-2 md:text-sm">{caption}</p>
+      <p className="mt-1 truncate text-sm whitespace-pre text-ink-3 max-md:hidden">{detail}</p>
     </Card>
   );
 }
@@ -228,8 +228,8 @@ function Icon({ name }: { name: IconName }) {
 /** Indicador visible de "esto se puede tocar" (las tarjetas completas son botones). */
 function OpenPill({ children }: { children: ReactNode }) {
   return (
-    <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-accent-ink px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors group-hover:bg-[#3f7619]">
-      {children} <span aria-hidden>›</span>
+    <span className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-full bg-accent-ink px-2.5 py-1.5 md:px-3 text-xs font-semibold text-white shadow-sm transition-colors group-hover:bg-[#3f7619]">
+      <span className="max-md:hidden">{children}</span> <span aria-hidden>›</span>
     </span>
   );
 }

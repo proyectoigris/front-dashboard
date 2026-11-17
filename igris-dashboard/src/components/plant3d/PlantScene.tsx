@@ -320,7 +320,7 @@ const VIEW_DIR = new THREE.Vector3(4.0, 0.1, 5.7).normalize();
  * a la lámpara, llene todo el alto disponible (o el ancho, si el lienzo es angosto).
  * Se recalcula solo al cambiar el tamaño, así no pisa el zoom que haga el usuario.
  */
-function CameraFit({ ymin, ymax, halfWidth }: { ymin: number; ymax: number; halfWidth: number }) {
+function CameraFit({ ymin, ymax, halfWidth, narrowHalfWidth }: { ymin: number; ymax: number; halfWidth: number; narrowHalfWidth?: number }) {
   const camera = useThree((st) => st.camera) as THREE.PerspectiveCamera;
   const size = useThree((st) => st.size);
   const controls = useThree((st) => st.controls) as unknown as { target: THREE.Vector3; update: () => void } | null;
@@ -328,7 +328,9 @@ function CameraFit({ ymin, ymax, halfWidth }: { ymin: number; ymax: number; half
     const t = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
     const aspect = size.width / Math.max(1, size.height);
     const dV = ((ymax - ymin) / 2) * 1.03 / t;
-    const dH = halfWidth / (t * aspect);
+    // Lienzo vertical (móvil): se reserva más ancho para que las etiquetas laterales no se salgan.
+    const hw = narrowHalfWidth && aspect < 0.85 ? Math.max(halfWidth, narrowHalfWidth) : halfWidth;
+    const dH = hw / (t * aspect);
     const target = new THREE.Vector3(0, (ymin + ymax) / 2, 0);
     camera.position.copy(target).addScaledVector(VIEW_DIR, Math.max(dV, dH));
     camera.lookAt(target);
@@ -337,7 +339,7 @@ function CameraFit({ ymin, ymax, halfWidth }: { ymin: number; ymax: number; half
       controls.target.copy(target);
       controls.update();
     }
-  }, [camera, controls, size.width, size.height, ymin, ymax, halfWidth]);
+  }, [camera, controls, size.width, size.height, ymin, ymax, halfWidth, narrowHalfWidth]);
   return null;
 }
 
@@ -349,8 +351,11 @@ export default function PlantScene({
   zone = null,
   onZone,
   compact = false,
+  mini = false,
   onTag,
 }: {
+  /** Franja mínima (móvil con panel abierto): sin etiquetas de datos, que ya se ven en el panel. */
+  mini?: boolean;
   /** Toque en una etiqueta de datos: abre el panel con el detalle. */
   onTag?: (k: TagKind) => void;
   /** Columna angosta (panel abierto): se reserva ancho para que las etiquetas quepan junto a la planta. */
@@ -414,12 +419,13 @@ export default function PlantScene({
         <GrowLamp par={data.par?.value ?? null} y={lampY} />
         {onZone && (
           <>
-            <ZoneHit y0={minY} y1={-0.05} radius={0.75} zone="roots" label="Microbioma de raíz" color="#d3a23e" buttonAt={[0, minY + 0.3, 0.9]} active={zone === 'roots'} onSelect={onZone} />
-            <ZoneHit y0={0.35} y1={maxY} radius={1.3} zone="leaves" label="Proteínas de hoja" color="#74b43b" buttonAt={[1.4, maxY * 0.45, 0.4]} active={zone === 'leaves'} onSelect={onZone} />
+            <ZoneHit y0={minY} y1={-0.05} radius={0.75} zone="roots" label={mini ? "Microbioma" : "Microbioma de raíz"} color="#d3a23e" buttonAt={[0, minY + 0.3, 0.9]} active={zone === 'roots'} onSelect={onZone} />
+            <ZoneHit y0={0.35} y1={maxY} radius={1.3} zone="leaves" label={mini ? "Proteínas" : "Proteínas de hoja"} color="#74b43b" buttonAt={[1.4, maxY * 0.45, 0.4]} active={zone === 'leaves'} onSelect={onZone} />
           </>
         )}
 
         {/* Cinco etiquetas compactas: suelo a los lados de las raíces, aire junto a la copa y luz bajo la lámpara. */}
+        {!mini && (
         <group key={sceneKey}>
           <DataTag anchor={[probeX, -MOISTURE_DEPTHS.upper * CM, front]} offset={[1.1, 0.3, 0.3]} label={`${MOISTURE_DEPTHS.upper} cm`} value={`${fmtV(data.moistureUpper)} %`} color="#0085de" kind="soil" onTag={onTag} />
           <DataTag anchor={[probeX, -MOISTURE_DEPTHS.lower * CM, front]} offset={[1.1, 0.0, 0.3]} label={`${MOISTURE_DEPTHS.lower} cm`} value={`${fmtV(data.moistureLower)} %`} color="#d3a23e" kind="soil" onTag={onTag} />
@@ -440,11 +446,13 @@ export default function PlantScene({
           {data.par && (
             <DataTag anchor={[0.6, lampY - 0.08, 0]} offset={[1.3, -0.6, 0.3]} label="Luz" value={`${fmtV(data.par)} PAR`} color="#24aecf" kind="light" onTag={onTag} />
           )}
-        </group>      </group>
+        </group>
+        )}
+      </group>
 
       {/* Giro automático lento hasta el primer toque; después se gira arrastrando. */}
       {/* El grupo de la escena está desplazado 0,4 hacia abajo. */}
-      <CameraFit ymin={-0.4 + minY - 0.3} ymax={-0.4 + maxY + 0.06} halfWidth={compact ? 2.5 : (bounds?.halfWidth ?? 1.8)} />
+      <CameraFit ymin={-0.4 + minY - 0.3} ymax={-0.4 + maxY + 0.06} halfWidth={compact || mini ? 2.5 : (bounds?.halfWidth ?? 1.8)} narrowHalfWidth={compact || mini ? undefined : 2.7} />
       <OrbitControls
         makeDefault
         enablePan={false}
@@ -453,7 +461,7 @@ export default function PlantScene({
         autoRotate={spinning}
         autoRotateSpeed={1}
         minDistance={3}
-        maxDistance={16}
+        maxDistance={20}
         minPolarAngle={0.3}
         maxPolarAngle={Math.PI * 0.62}
       />

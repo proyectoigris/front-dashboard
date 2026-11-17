@@ -44,6 +44,58 @@ body,
 #root {
   height: 100%;
 }
+/* Móvil: alto visible real (sin la barra del navegador). */
+@supports (height: 100dvh) {
+  #root {
+    height: 100dvh;
+  }
+}
+
+/*
+ * Diseño apilado (móvil / tablet vertical, clase .m-flow): el panel de datos va bajo la planta
+ * y su contenido hace scroll vertical. Las vistas de escritorio llenan el alto disponible;
+ * aquí toman el alto de su contenido.
+ */
+.m-flow > * {
+  height: auto;
+}
+.m-flow [class*="grid-cols-["] {
+  height: auto;
+}
+/* Gráficos que antes tomaban el alto sobrante: altura fija legible. */
+.m-flow .recharts-responsive-container {
+  min-height: 260px;
+}
+.m-flow header {
+  flex-wrap: wrap;
+}
+
+/* Teléfonos (< 768 px): las columnas laterales fijas se apilan. */
+@media (max-width: 767px) {
+  .m-flow [class*="grid-cols-["] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .m-flow .grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  /* Etiquetas y botones de la escena 3D más compactos. */
+  .tag-pill {
+    height: 24px;
+    padding: 0 7px;
+    gap: 4px;
+    font-size: 10.5px;
+  }
+  .tag-dot {
+    width: 6px;
+    height: 6px;
+  }
+  .zone-btn {
+    min-height: 32px;
+    padding: 0 10px;
+    gap: 6px;
+    font-size: 11.5px;
+  }
+}
 
 body {
   margin: 0;

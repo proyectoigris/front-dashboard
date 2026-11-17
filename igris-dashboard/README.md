@@ -156,3 +156,13 @@ npx vercel deploy --prod --scope rochaver
 - La voz usa la Web Speech API. En Chrome, el reconocimiento requiere internet. Para funcionar sin conexión en la Raspberry Pi hay que usar STT y TTS locales (Vosk o whisper.cpp, y Piper).
 - En el simulador la inoculación no tiene efecto, para no sugerir resultados.
 - El dashboard no controla el riego ni actuadores, por diseño.
+
+## Docker (Raspberry Pi OS / arm64)
+
+```bash
+git lfs pull                      # los modelos .glb están en Git LFS
+docker compose up -d --build      # compila y sirve en el puerto 80
+IGRIS_PORT=8080 docker compose up -d   # otro puerto del host
+```
+
+La imagen instala las dependencias dentro del contenedor (binarios nativos de Linux) y sirve `dist/` con nginx.

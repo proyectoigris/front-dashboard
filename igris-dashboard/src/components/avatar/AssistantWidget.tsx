@@ -8,6 +8,7 @@ import { assistant, type AssistantAction } from '../../services/assistant';
 import { listen, speak, speechInputSupported, speechOutputSupported, stopSpeaking } from '../../services/speech';
 import { igrisStore, useSnapshot } from '../../store/igrisStore';
 import { useUi } from '../../state/ui';
+import { useIsMobile } from '../../state/useIsMobile';
 import type { AvatarState } from '../../types/domain';
 
 const AVATAR_SOURCES = ['/igris/igris.png', '/igris.png'];
@@ -55,6 +56,8 @@ export function AssistantWidget({ onAction }: { onAction: (a: AssistantAction) =
   const ui = useUi();
   const s = useSnapshot();
   const [open, setOpen] = useState(false);
+  // Diseño apilado (móvil / tablet vertical): la etiqueta de estado va sobre el botón para no tapar la barra inferior.
+  const stacked = useIsMobile();
   const [msgs, setMsgs] = useState<Msg[]>([
     { id: 'hello', role: 'igris', text: 'Hola, soy IGRIS. Pregúntame por la cámara, una planta o un tratamiento. Puedes escribir o tocar el micrófono.' },
   ]);
@@ -130,7 +133,7 @@ export function AssistantWidget({ onAction }: { onAction: (a: AssistantAction) =
   return (
     <>
       {open && (
-        <section className="fixed right-4 bottom-3 z-50 flex h-[min(470px,calc(100vh-90px))] w-[460px] flex-col overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-black/5">
+        <section className="fixed inset-x-2 bottom-2 z-50 flex h-[min(560px,calc(100dvh-1rem))] flex-col md:inset-x-auto md:right-4 md:bottom-3 md:h-[min(470px,calc(100vh-90px))] md:w-[460px] overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-black/5">
           {/* Cabecera con el degradado del logo */}
           <header className="flex shrink-0 items-center gap-3 bg-gradient-to-r from-[#74b43b] via-[#08a1ba] to-[#0085de] px-4 py-3 text-white">
             <span className="grid h-12 w-12 place-items-center rounded-full bg-white/95">
@@ -226,11 +229,11 @@ export function AssistantWidget({ onAction }: { onAction: (a: AssistantAction) =
         aria-label={open ? 'Cerrar chat con IGRIS' : 'Abrir chat con IGRIS'}
         className="img-btn relative block"
       >
-        <img src="/igris/btn-botania.png" alt="" draggable={false} className="h-[76px] w-auto" />
+        <img src="/igris/btn-botania.png" alt="" draggable={false} className="h-[52px] w-auto md:h-[76px]" />
         {/* Estado de IGRIS (escuchando, hablando…) o chat abierto: etiqueta pequeña sobre el botón. */}
         {(open || state !== 'idle') && (
           <span
-            className="absolute top-1/2 right-full mr-2 -translate-y-1/2 flex h-6 items-center gap-1.5 rounded-full bg-white px-2.5 text-[11px] font-semibold text-ink shadow"
+            className={`absolute flex h-6 ${stacked ? 'right-2 bottom-full mb-1' : 'top-1/2 right-full mr-2 -translate-y-1/2'} items-center gap-1.5 rounded-full bg-white px-2.5 text-[11px] font-semibold whitespace-nowrap text-ink shadow`}
           >
             <span className={`h-2 w-2 rounded-full ${state === 'listening' || state === 'alert' ? 'anim-blink' : ''}`} style={{ background: STATE_COLOR[state] }} />
             {state === 'idle' ? 'Cerrar chat' : STATE_LABEL[state]}
