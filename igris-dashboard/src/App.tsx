@@ -131,13 +131,24 @@ function Shell({ user, onLogout }: { user: string; onLogout: () => void }) {
         <PlantStage />
       </div>
 
-      {/* Panel cerrado: botón para desplegar los datos (borde derecho). */}
+      {/* Panel cerrado: botón para desplegar los datos.
+          Escritorio: pestaña pegada al borde derecho (de ahí sale el panel). Móvil: al centro de la fila inferior (el panel sube desde abajo). */}
       <button
         onClick={() => ui.setPanelOpen(true)}
         aria-label="Mostrar panel de datos"
-        className={`absolute z-30 transition-all duration-500 ${mobile ? 'top-[45%] right-3' : 'top-1/2 right-6 -translate-y-1/2'} ${open ? 'pointer-events-none translate-x-8 opacity-0' : 'opacity-100'}`}
+        tabIndex={open ? -1 : 0}
+        className={`dock-btn absolute z-30 transition-[opacity,translate] duration-500 ${
+          mobile
+            ? `dock-btn-sm bottom-[max(0.5rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 ${open ? 'pointer-events-none translate-y-6 opacity-0' : 'opacity-100'}`
+            : `edge-tab top-1/2 right-0 -translate-y-1/2 ${open ? 'pointer-events-none translate-x-10 opacity-0' : 'opacity-100'}`
+        }`}
       >
-        <img src="/igris/btn-ver-datos.png" alt="" draggable={false} className={`img-btn w-auto ${mobile ? 'h-[68px]' : 'h-[96px]'}`} />
+        <span className="dock-ico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            {mobile ? <path d="M6 15l6-6 6 6" /> : <path d="M15 6l-6 6 6 6" />}
+          </svg>
+        </span>
+        <span className={mobile ? '' : 'edge-label'}>{mobile ? 'Datos' : 'Ver datos'}</span>
       </button>
       {/* Panel de datos: se desliza desde la derecha. El contenido tiene ancho fijo para no reacomodarse durante la animación. */}
       <main
@@ -199,7 +210,7 @@ function Shell({ user, onLogout }: { user: string; onLogout: () => void }) {
 
         {/* Barra inferior: estado del sistema a la izquierda, IGRIS a la derecha (no tapa datos). */}
         {/* En móvil el estado va en una fila compacta; el botón de IGRIS flota sobre el contenido. */}
-        <footer className={`flex shrink-0 items-center justify-between ${mobile ? 'mt-2 h-9 gap-2 pr-[172px] md:pr-[250px]' : 'mt-3 h-16 gap-6'}`}>
+        <footer className={`flex shrink-0 items-center justify-between ${mobile ? 'mt-2 h-9 gap-2 pr-12' : 'mt-3 h-16 gap-6'}`}>
           <div className={`flex min-w-0 items-center text-white/85 ${mobile ? 'gap-3 overflow-hidden text-xs' : 'gap-6 text-sm'}`}>
             {s.origin === 'simulated' && <SimBadge onDark compact={mobile} />}
             {activeAlerts > 0 && !explorer && ui.tab !== 'alerts' && (
@@ -215,13 +226,13 @@ function Shell({ user, onLogout }: { user: string; onLogout: () => void }) {
             {!mobile && <span className="num text-base text-white">{fmtTime(s.now)}</span>}
           </div>
           {/* Espacio reservado para el botón de IGRIS (fijo abajo a la derecha). */}
-          {!mobile && <div className="w-60 shrink-0" />}
+          {!mobile && <div className="w-52 shrink-0" />}
         </footer>
       </div>
       </main>
 
       {/* IGRIS: disponible siempre, con o sin panel. */}
-      <div className="fixed right-3 bottom-2 z-40 md:right-6 md:bottom-3">
+      <div className={`fixed z-40 flex ${mobile ? 'right-3 bottom-[max(0.5rem,env(safe-area-inset-bottom))]' : 'right-6 bottom-5'}`}>
         <AssistantWidget onAction={onAssistantAction} />
       </div>
     </div>

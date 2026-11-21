@@ -56,8 +56,9 @@ export function AssistantWidget({ onAction }: { onAction: (a: AssistantAction) =
   const ui = useUi();
   const s = useSnapshot();
   const [open, setOpen] = useState(false);
-  // Diseño apilado (móvil / tablet vertical): la etiqueta de estado va sobre el botón para no tapar la barra inferior.
+  // Diseño apilado (móvil / tablet vertical): botón compacto.
   const stacked = useIsMobile();
+  const iconOnly = stacked && ui.panelOpen;
   const [msgs, setMsgs] = useState<Msg[]>([
     { id: 'hello', role: 'igris', text: 'Hola, soy IGRIS. Pregúntame por la cámara, una planta o un tratamiento. Puedes escribir o tocar el micrófono.' },
   ]);
@@ -223,22 +224,22 @@ export function AssistantWidget({ onAction }: { onAction: (a: AssistantAction) =
       )}
 
 
-      {/* Botón de IGRIS: vive en la barra inferior (no flota sobre los datos). */}
+      {/* Botón de BotanIA: pastilla sobria abajo a la derecha. El punto indica el estado (escuchando, hablando…).
+          En móvil con el panel abierto queda solo el ícono para no tapar la barra inferior. */}
       <button
         onClick={() => setOpen((o) => !o)}
-        aria-label={open ? 'Cerrar chat con IGRIS' : 'Abrir chat con IGRIS'}
-        className="img-btn relative block"
+        aria-label={open ? 'Cerrar chat con BotanIA' : 'Abrir chat con BotanIA'}
+        aria-pressed={open}
+        className={`dock-btn ${stacked ? 'dock-btn-sm' : ''} ${iconOnly ? 'dock-btn-icon' : ''}`}
       >
-        <img src="/igris/btn-botania.png" alt="" draggable={false} className="h-[52px] w-auto md:h-[76px]" />
-        {/* Estado de IGRIS (escuchando, hablando…) o chat abierto: etiqueta pequeña sobre el botón. */}
-        {(open || state !== 'idle') && (
+        <span className="dock-ico overflow-visible bg-white/90">
+          <AvatarImg className="h-[85%] w-[85%]" />
           <span
-            className={`absolute flex h-6 ${stacked ? 'right-2 bottom-full mb-1' : 'top-1/2 right-full mr-2 -translate-y-1/2'} items-center gap-1.5 rounded-full bg-white px-2.5 text-[11px] font-semibold whitespace-nowrap text-ink shadow`}
-          >
-            <span className={`h-2 w-2 rounded-full ${state === 'listening' || state === 'alert' ? 'anim-blink' : ''}`} style={{ background: STATE_COLOR[state] }} />
-            {state === 'idle' ? 'Cerrar chat' : STATE_LABEL[state]}
-          </span>
-        )}
+            className={`absolute -right-0.5 -bottom-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-[#10261b] ${state === 'listening' || state === 'alert' ? 'anim-blink' : ''}`}
+            style={{ background: STATE_COLOR[state] }}
+          />
+        </span>
+        {!iconOnly && <span className="dock-opt">{state !== 'idle' ? STATE_LABEL[state] : stacked ? 'BotanIA' : 'Habla con BotanIA'}</span>}
       </button>
     </>
   );

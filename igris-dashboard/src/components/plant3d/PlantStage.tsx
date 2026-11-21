@@ -120,9 +120,14 @@ export function PlantStage() {
       }}
       aria-label="Análisis IGRIS"
       aria-pressed={ui.tab === 'analysis' && !ui.explorerOpen}
-      className={`img-btn pointer-events-auto block ${ui.tab === 'analysis' && !ui.explorerOpen ? 'img-btn-active' : ''}`}
+      className={`dock-btn pointer-events-auto ${mobile ? 'dock-btn-sm' : ''}`}
     >
-      <img src="/igris/btn-analisis.png" alt="" draggable={false} className={`${mini ? 'h-10' : mobile ? 'h-[56px]' : compact ? 'h-[76px]' : 'h-[100px]'} w-auto`} />
+      <span className="dock-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M4 20h16M7 16v-5M12 16V6M17 16v-8" />
+        </svg>
+      </span>
+      <span className="dock-opt">{mobile ? 'Análisis' : 'Análisis IGRIS'}</span>
     </button>
   );
 
@@ -145,9 +150,9 @@ export function PlantStage() {
       </div>
 
       {compact ? (
-        <div className="flex shrink-0 justify-center px-6 pt-2 pb-4">{analysisButton}</div>
+        <div className="flex shrink-0 justify-center px-6 pt-2 pb-5">{analysisButton}</div>
       ) : (
-        <div className={`pointer-events-none absolute z-10 ${mini ? 'bottom-2 left-3' : mobile ? 'bottom-2 left-3' : 'bottom-4 left-6'}`}>{analysisButton}</div>
+        <div className={`pointer-events-none absolute z-10 ${mobile ? 'bottom-[max(0.5rem,env(safe-area-inset-bottom))] left-3' : 'bottom-5 left-6'}`}>{analysisButton}</div>
       )}
     </aside>
   );
